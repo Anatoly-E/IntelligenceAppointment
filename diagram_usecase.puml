@@ -1,0 +1,49 @@
+@startuml IntelligenceAppointment
+left to right direction
+
+actor Пользователь
+
+rectangle "Intelligence Appointment" {
+  usecase "Открыть ворота" as OpenGate
+  usecase "Закрыть ворота" as CloseGate
+  
+  usecase "Включить освещение" as LightOn
+  usecase "Отключить освещение" as LightOff
+  usecase "Включить автоматы розеток" as PowerOn
+  usecase "Отключить автоматы розеток" as PowerOff
+  usecase "Отключить датчики движения" as MotionOff
+  usecase "Включить датчики движения" as MotionOn
+  usecase "Отключить охранную сигнализацию" as AlarmOff
+  usecase "Включить охранную сигнализацию" as AlarmOn
+  usecase "Управление теплым полом" as Heating
+  usecase "Измерение энергопотребления" as EnergyMonitor
+  
+  ' Основные связи
+  Пользователь --> OpenGate
+  Пользователь --> CloseGate
+  
+  ' Включения для открытия ворот
+  OpenGate --> LightOn : include
+  OpenGate --> PowerOn : include
+  OpenGate --> MotionOff : include
+  OpenGate --> AlarmOff : include
+  
+  ' Включения для закрытия ворот
+  CloseGate --> LightOff : include
+  CloseGate --> PowerOff : include
+  CloseGate --> MotionOn : include
+  CloseGate --> AlarmOn : include
+  CloseGate --> Heating : include
+  
+  ' Расширения
+  LightOff .> (Запрограммированное время) : extend
+  PowerOff .> (Датчик освещенности) : extend
+  MotionOn .> (Датчик освещенности) : extend
+  Heating .> (Датчик температуры) : extend
+  Heating .> (Календарь) : extend
+  
+  ' Автономные процессы
+  EnergyMonitor --> Heating
+}
+
+@enduml

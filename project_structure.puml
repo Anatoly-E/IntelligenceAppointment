@@ -1,0 +1,41 @@
+@startuml IntelligenceAppointment
+title Garage Management System — UML Блок-схема проекта
+
+start
+
+:'Описать логику проекта текстом';
+
+:ИИ-компилятор анализирует текст;
+:Генерация UML-файла (project_structure.puml);
+
+:Импорт UML в IDE (VS Code);
+partition "IDE (VS Code + PlatformIO)" {
+  :Открытие UML-файла;
+  :Редактирование логики проекта;
+  :Импорт схемы элементов (diagram.json);
+  :Загрузка конфигурации (wokwi.toml);
+  :Генерация C++ кода из UML;
+  :Редактирование main.cpp;
+  :PlatformIO: Build (создание .elf и .hex);
+  :PlatformIO: Upload (загрузка в Arduino);
+}
+
+partition "Управление Arduino" {
+  :Контроллер Arduino принимает прошивку;
+  :Выполнение логики управления;
+  :Сбор данных с датчиков;
+  :Передача данных аналитики;
+}
+
+partition "Database (SQLite)" {
+  :Приём данных от Arduino;
+  :Шифрование данных;
+  :Запись данных в базу (аналитика);
+}
+
+:Отладка и тестирование;
+:Анализ работы системы;
+
+stop
+
+@enduml

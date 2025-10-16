@@ -1,0 +1,19 @@
+@startuml Workflow
+actor Owner
+participant RemoteApp
+participant GarageController
+participant GateActuator
+participant LightController
+participant GateSensor
+
+Owner -> RemoteApp : press Open
+RemoteApp -> GarageController : requestOpen()
+GarageController -> GateSensor : checkSafety()
+GateSensor --> GarageController : ok
+GarageController -> GateActuator : moveUp()
+GateActuator -> GateSensor : notifyOpened()
+GateSensor --> GarageController : opened
+GarageController -> LightController : turnOn("garage_interior")
+GarageController --> RemoteApp : Back
+@enduml
+

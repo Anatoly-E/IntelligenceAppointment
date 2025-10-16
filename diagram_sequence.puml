@@ -1,0 +1,178 @@
+@startuml IntelligenceAppointment
+title Система управления IntelligenceAppointment - Sequence Diagram
+
+actor Пользователь
+participant "Пульт управления" as Пульт
+participant "Система управления" as Система
+participant Ворота
+participant Освещение
+participant "Автоматы розеток" as Розетки
+participant "Датчики движения" as Датчики
+participant "Охранная сигнализация" as Сигнализация
+participant "Тёплый пол" as ТеплыйПол
+participant "Энергомониторинг" as Мониторинг
+participant "Таймер освещения" as Таймер
+participant "Датчик освещенности" as ДатчикСвета
+participant Календарь
+
+== СЦЕНАРИЙ ОТКРЫТИЯ ВОРОТ ==
+
+Пользователь -> Пульт : нажатие кнопки "Открыть"
+activate Пульт
+Пульт -> Система : команда openGate()
+activate Система
+
+Система -> Ворота : open()
+activate Ворота
+Ворота --> Система : status = OPENED
+deactivate Ворота
+
+par Параллельное выполнение
+    Система -> Освещение : turnOn()
+    activate Освещение
+    Освещение --> Система : status = ON
+    deactivate Освещение
+else
+    Система -> Розетки : enableAll()
+    activate Розетки
+    Розетки --> Система : enabled = true
+    deactivate Розетки
+else
+    Система -> Датчики : disable()
+    activate Датчики
+    Датчики --> Система : active = false
+    deactivate Датчики
+else
+    Система -> Сигнализация : disarm()
+    activate Сигнализация
+    Сигнализация --> Система : armed = false
+    deactivate Сигнализация
+end par
+
+Система --> Пульт : operationComplete(true)
+deactivate Система
+Пульт --> Пользователь : индикация успеха
+deactivate Пульт
+
+== СЦЕНАРИЙ ЗАКРЫТИЯ ВОРОТ ==
+
+Пользователь -> Пульт : нажатие кнопки "Закрыть"
+activate Пульт
+Пульт -> Система : команда closeGate()
+activate Система
+
+Система -> Ворота : close()
+activate Ворота
+Ворота --> Система : status = CLOSED
+deactivate Ворота
+
+par Основные действия
+    Система -> Датчики : enable()
+    activate Датчики
+    Датчики --> Система : active = true
+    deactivate Датчики
+else
+    Система -> Сигнализация : arm()
+    activate Сигнализация
+    Сигнализация --> Система : armed = true
+    deactivate Сигнализация
+else
+    Система -> ТеплыйПол : setEcoMode()
+    activate ТеплыйПол
+    ТеплыйПол --> Система : mode = ECO
+    deactivate ТеплыйПол
+end par
+
+Система -> Таймер : startTimer(delay)
+activate Таймер
+Таймер --> Система : timerStarted
+deactivate Таймер
+
+Система -> Розетки : disableNonCritical()
+activate Розетки
+Розетки -> ДатчикСвета : getLightLevel()
+activate ДатчикСвета
+DатчикСвета --> Розетки : lightLevel
+deactivate ДатчикСвета
+
+alt lightLevel > THRESHOLD (день)
+    Розетки -> Розетки : disableAllExcept(outdoorLighting)
+else lightLevel <= THRESHOLD (ночь)
+    Розетки -> Розетки : disableAllExcept(outdoorLighting, essential)
+end
+
+Розетки --> Система : disabled = true
+deactivate Розетки
+
+Система --> Пульт : operationComplete(true)
+deactivate Система
+Пульт --> Пользователь : индикация успеха
+deactivate Пульт
+
+... Задержка ...
+
+Таймер -> Таймер : timeout
+activate Таймер
+Таймер -> Освещение : turnOff()
+activate Освещение
+Освещение --> Таймер : status = OFF
+deactivate Освещение
+Таймер --> Система : timerCompleted
+deactivate Таймер
+
+== ФОНОВЫЕ ПРОЦЕССЫ ==
+
+box "Фоновые процессы" #LightBlue
+    participant "Фоновая задача" as Фон
+end box
+
+loop Каждые 5 минут
+    Фон -> Мониторинг : measureConsumption()
+    activate Мониторинг
+    Мониторинг --> Фон : consumptionData
+    deactivate Мониторинг
+end
+
+loop Каждые 30 минут
+    Фон -> ТеплыйПол : manageTemperature()
+    activate ТеплыйПол
+    ТеплыйПол -> Календарь : isWorkDay()
+    activate Календарь
+    Календарь --> ТеплыйПол : workDayFlag
+    deactivate Календарь
+    
+    alt workDayFlag == true
+        ТеплыйПол -> ТеплыйПол : increaseTempBeforeArrival()
+    else
+        ТеплыйПол -> ТеплыйПол : maintainEcoMode()
+    end
+    
+    ТеплыйПол --> Фон : temperatureAdjusted
+    deactivate ТеплыйПол
+end
+
+== ОБРАБОТКА СОБЫТИЙ ДАТЧИКОВ ==
+
+loop При обнаружении движения
+    Датчики -> Датчики : motionDetected()
+    activate Датчики
+    Датчики -> ДатчикСвета : getLightLevel()
+    activate ДатчикСвета
+    ДатчикСвета --> Датчики : lightLevel
+    deactivate ДатчикСвета
+    
+    alt Датчик снаружи AND lightLevel < THRESHOLD
+        Датчики -> Освещение : turnOnAdditional()
+        activate Освещение
+        Освещение --> Датчики : additionalLightsOn
+        deactivate Освещение
+    else Датчик внутри AND armed == true
+        Датчики -> Сигнализация : triggerAlarm()
+        activate Сигнализация
+        Сигнализация --> Датчики : alarmTriggered
+        deactivate Сигнализация
+    end
+    deactivate Датчики
+end
+
+@enduml
