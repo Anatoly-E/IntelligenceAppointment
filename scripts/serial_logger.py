@@ -16,7 +16,7 @@ def detect_arduino_port():
         pass
     return None
 
-def log_serial_data(port, baud=9600, log_file="log.txt", duration=None):
+def log_serial_data(port, baud=9600, log_file="logs/log.txt", duration=None):
     try:
         with serial.Serial(port, baud, timeout=1) as ser, open(log_file, "a", encoding="utf-8") as f:
             print(f"[LOGGER] Подключено к {port}, запись идёт...")

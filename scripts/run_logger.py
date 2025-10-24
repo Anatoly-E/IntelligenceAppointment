@@ -5,7 +5,7 @@ import time
 Import("env")
 
 project_dir = env['PROJECT_DIR']
-logger_path = os.path.join(project_dir, "serial_logger.py")
+logger_path = os.path.join(project_dir, "scripts", "serial_logger.py")
 
 def after_upload(source, target, env):
     print("[POST-UPLOAD] Прошивка завершена, запуск логгера...")
