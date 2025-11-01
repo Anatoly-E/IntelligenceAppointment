@@ -6,7 +6,7 @@
 
 // Настройка системы
 constexpr unsigned long ALARM_DURATION = 3000;  // Длительность звуковой сигнализации (мс)
-constexpr int ALARM_DISTANCE = 150;             // Порог дистанции срабатывания охранной сигнализации (см)
+constexpr int ALARM_DISTANCE = 50;             // Порог дистанции срабатывания охранной сигнализации (см)
 constexpr unsigned long INTERVAL_SERVO = 20;    // Пауза между шагами серво для плавного движения (мс)
 constexpr unsigned long INTERVAL_SENSOR = 2000; // Интервал опроса датчиков (мс)
 
@@ -120,16 +120,10 @@ void readDHTTask()
   {
     lastTemp = t;
     lastHum = h;
-    Serial.print("Temperature: ");
-    Serial.print(t);
-    Serial.println(" °C");
-    Serial.print("Humidity: ");
-    Serial.print(h);
-    Serial.println("%");
   }
   else
   {
-    Serial.println("[DHT22] Read error!");
+    // Serial.println("[DHT22] Read error!");
   }
 }
 
@@ -195,6 +189,26 @@ void updateLCD(const String &text, SystemState systemState)
   }
 }
 
+void updateSerial(float _currentTemp, float _currentHumidity, float _currentDistance, SystemState currentSystemState)
+{
+
+  float currentTemp =  !isnan(_currentTemp) ? _currentTemp : 0;
+  float currentHumidity =  !isnan(_currentHumidity) ? _currentHumidity : 0;
+  float currentDistance =  !isnan(_currentDistance) ? _currentDistance : 0;
+
+  Serial.print("Temperature: ");
+  Serial.print(currentTemp);
+  Serial.println(" °C");
+  Serial.print("Humidity: ");
+  Serial.print(currentHumidity);
+  Serial.println(" %");
+  Serial.print(F("Distance: "));
+  Serial.print(currentDistance);
+  Serial.println(F(" sm"));
+  Serial.print(F("System state: "));
+  Serial.println(getSystemStateText(currentSystemState));
+}
+
 // Охранная сигнализация
 void checkAlarm()
 {
@@ -228,12 +242,6 @@ void checkAlarm()
     alarmActive = false;
     sysState = SYSTEM_STANDBY;
   }
-
-  Serial.print(F("State: "));
-  Serial.println(getSystemStateText(sysState));
-  Serial.print(F("Dist: "));
-  Serial.print(lastDist);
-  Serial.println(F("cm"));
 }
 
 void setup()
@@ -390,5 +398,6 @@ void loop()
     previousMillisSensor = millis();
     readDHTTask();
     checkAlarm();
+    updateSerial(lastTemp, lastHum, lastDist, sysState);
   }
 }

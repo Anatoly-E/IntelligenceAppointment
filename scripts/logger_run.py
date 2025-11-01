@@ -5,7 +5,7 @@ import time
 Import("env")
 
 project_dir = env['PROJECT_DIR']
-logger_path = os.path.join(project_dir, "scripts", "serial_logger.py")
+logger_path = os.path.join(project_dir, "scripts", "logger_serial.py")
 
 def after_upload(source, target, env):
     print("[POST-UPLOAD] Прошивка завершена, запуск логгера...")
@@ -16,7 +16,8 @@ def after_upload(source, target, env):
     try:
         # 👉 Здесь используется именно тот Python, который найден у тебя
         subprocess.Popen(
-            [r"C:\Users\EAV-Note\.platformio\python3\python.exe", logger_path],
+            # [r"C:\Users\EAV-Note\.platformio\python3\python.exe", logger_path],
+            [r"C:\Python\Python314\python.exe", logger_path],
             shell=True
         )
         print(f"[POST-UPLOAD] Логгер запущен: {logger_path}")
