@@ -5,7 +5,7 @@ KEY_FILE = os.path.join("secrets", "secret.key")
 
 def load_or_create_key():
     """Создаёт новый или загружает существующий ключ шифрования."""
-    # Создаём папку logs, если её нет
+    # Создаём папку secrets, если её нет
     os.makedirs(os.path.dirname(KEY_FILE), exist_ok=True)
 
     # Если файл отсутствует или пустой — создаём новый ключ
